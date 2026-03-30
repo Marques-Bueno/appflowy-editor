@@ -45,6 +45,8 @@ class AppFlowyEditor extends StatefulWidget {
     this.disableScrollService = false,
     this.disableAutoScroll = false,
     this.autoScrollEdgeOffset = appFlowyEditorAutoScrollEdgeOffset,
+    this.desktopOrWebAutoScrollConfig = AutoScrollConfig.desktopOrWeb,
+    this.mobileAutoScrollConfig = AutoScrollConfig.mobile,
     this.documentRules = const [],
     this.blockWrapper,
   })  : blockComponentBuilders =
@@ -222,6 +224,12 @@ class AppFlowyEditor extends StatefulWidget {
   ///
   final double autoScrollEdgeOffset;
 
+  /// Auto scroll config used on desktop and web.
+  final AutoScrollConfig desktopOrWebAutoScrollConfig;
+
+  /// Auto scroll config used on mobile.
+  final AutoScrollConfig mobileAutoScrollConfig;
+
   /// The rules to apply to the document.
   ///
   final List<DocumentRule> documentRules;
@@ -379,6 +387,9 @@ class _AppFlowyEditorState extends State<AppFlowyEditor> {
     editorState.autoCompleteTextProvider = widget.autoCompleteTextProvider;
     editorState.disableAutoScroll = widget.disableAutoScroll;
     editorState.autoScrollEdgeOffset = widget.autoScrollEdgeOffset;
+    editorState.desktopOrWebAutoScrollConfig =
+        widget.desktopOrWebAutoScrollConfig;
+    editorState.mobileAutoScrollConfig = widget.mobileAutoScrollConfig;
     editorState.documentRules = widget.documentRules;
   }
 

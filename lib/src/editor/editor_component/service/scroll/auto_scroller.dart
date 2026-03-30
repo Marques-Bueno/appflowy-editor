@@ -20,12 +20,16 @@ class AutoScroller extends EdgeDraggingAutoScroller
     super.velocityScalar = _kDefaultAutoScrollVelocityScalar,
     super.minimumAutoScrollDelta = _kDefaultMinAutoScrollDelta,
     super.maxAutoScrollDelta = _kDefaultMaxAutoScrollDelta,
+    super.overDragMax = _kDefaultOverDragMax,
+    super.scrollDeltaSmoothingFactor = _kDefaultScrollDeltaSmoothingFactor,
     super.animationDuration,
   });
 
   static const double _kDefaultAutoScrollVelocityScalar = 7;
   static const double _kDefaultMinAutoScrollDelta = 1.0;
   static const double _kDefaultMaxAutoScrollDelta = 20.0;
+  static const double _kDefaultOverDragMax = 20.0;
+  static const double _kDefaultScrollDeltaSmoothingFactor = 0.35;
 
   Offset? lastOffset;
   Duration? lastDuration;

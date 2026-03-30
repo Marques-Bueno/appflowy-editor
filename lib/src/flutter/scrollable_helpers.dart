@@ -152,11 +152,19 @@ class EdgeDraggingAutoScroller {
     required this.velocityScalar,
     double minimumAutoScrollDelta = 1.0,
     double maxAutoScrollDelta = 20.0,
+    double overDragMax = 20.0,
+    double scrollDeltaSmoothingFactor = 0.35,
     Duration? animationDuration,
   })  : assert(minimumAutoScrollDelta >= 0),
         assert(maxAutoScrollDelta >= minimumAutoScrollDelta),
+        assert(overDragMax > 0),
+        assert(
+          scrollDeltaSmoothingFactor >= 0 && scrollDeltaSmoothingFactor <= 1,
+        ),
         _minimumAutoScrollDelta = minimumAutoScrollDelta,
         _maxAutoScrollDelta = maxAutoScrollDelta,
+        _overDragMax = overDragMax,
+        _scrollDeltaSmoothingFactor = scrollDeltaSmoothingFactor,
         _animationDuration =
             animationDuration ?? const Duration(milliseconds: 5);
 
@@ -185,6 +193,8 @@ class EdgeDraggingAutoScroller {
   /// moving rather than treat it as too small to scroll.
   final double _minimumAutoScrollDelta;
   final double _maxAutoScrollDelta;
+  final double _overDragMax;
+  final double _scrollDeltaSmoothingFactor;
   final Duration _animationDuration;
   Duration? _currentDuration;
   double? _previousScrollDelta;
@@ -268,8 +278,6 @@ class EdgeDraggingAutoScroller {
 
       _scrolling = true;
       double? newOffset;
-      const double overDragMax = 20.0;
-
       final Offset deltaToOrigin = scrollable.deltaToScrollOrigin;
       final Offset viewportOrigin =
           globalRect.topLeft.translate(deltaToOrigin.dx, deltaToOrigin.dy);
@@ -293,7 +301,7 @@ class EdgeDraggingAutoScroller {
               scrollable.position.pixels >
                   scrollable.position.minScrollExtent) {
             final double overDrag =
-                math.min(proxyEnd - viewportEnd, overDragMax);
+                math.min(proxyEnd - viewportEnd, _overDragMax);
             final double delta = _smoothScrollDelta(overDrag);
             newOffset = math.max(
               scrollable.position.minScrollExtent,
@@ -303,7 +311,7 @@ class EdgeDraggingAutoScroller {
               scrollable.position.pixels <
                   scrollable.position.maxScrollExtent) {
             final double overDrag =
-                math.min(viewportStart - proxyStart, overDragMax);
+                math.min(viewportStart - proxyStart, _overDragMax);
             final double delta = _smoothScrollDelta(overDrag);
             newOffset = math.min(
               scrollable.position.maxScrollExtent,
@@ -317,7 +325,7 @@ class EdgeDraggingAutoScroller {
               scrollable.position.pixels >
                   scrollable.position.minScrollExtent) {
             final double overDrag =
-                math.min(viewportStart - proxyStart, overDragMax);
+                math.min(viewportStart - proxyStart, _overDragMax);
             final double delta = _smoothScrollDelta(overDrag);
             newOffset = math.max(
               scrollable.position.minScrollExtent,
@@ -327,7 +335,7 @@ class EdgeDraggingAutoScroller {
               scrollable.position.pixels <
                   scrollable.position.maxScrollExtent) {
             final double overDrag =
-                math.min(proxyEnd - viewportEnd, overDragMax);
+                math.min(proxyEnd - viewportEnd, _overDragMax);
             final double delta = _smoothScrollDelta(overDrag);
             newOffset = math.min(
               scrollable.position.maxScrollExtent,
@@ -396,8 +404,11 @@ class EdgeDraggingAutoScroller {
 
       return clampedDelta;
     }
-    final double smoothed =
-        lerpDouble(_previousScrollDelta!, clampedDelta, 0.35)!;
+    final double smoothed = lerpDouble(
+      _previousScrollDelta!,
+      clampedDelta,
+      _scrollDeltaSmoothingFactor,
+    )!;
     _previousScrollDelta = smoothed;
 
     return smoothed;

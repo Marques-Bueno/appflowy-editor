@@ -1,5 +1,4 @@
 import 'package:appflowy_editor/appflowy_editor.dart';
-import 'package:appflowy_editor/src/editor/editor_component/service/scroll/auto_scroll_tuning.dart';
 import 'package:appflowy_editor/src/editor/editor_component/service/selection/mobile_selection_service.dart';
 import 'package:appflowy_editor/src/editor/editor_component/service/selection/shared.dart';
 import 'package:appflowy_editor/src/service/selection/selection_gesture.dart';
@@ -415,11 +414,11 @@ class _DesktopSelectionServiceWidgetState
     _lastPanOffset = details.globalPosition;
     _updateSelectionDuringDrag(_lastPanOffset!);
 
-    final tuning = AppFlowyAutoScrollTuning.current();
+    final config = editorState.autoScrollConfig;
     editorState.service.scrollService?.startAutoScroll(
       _lastPanOffset!,
-      edgeOffset: tuning.selectionDragEdgeOffset,
-      duration: tuning.animationDuration,
+      edgeOffset: config.selectionDragEdgeOffset,
+      duration: config.animationDuration,
     );
   }
 

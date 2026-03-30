@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:appflowy_editor/appflowy_editor.dart';
-import 'package:appflowy_editor/src/editor/editor_component/service/scroll/auto_scroll_tuning.dart';
 import 'package:appflowy_editor/src/editor/editor_component/service/scroll/auto_scroller.dart';
 import 'package:appflowy_editor/src/editor/util/platform_extension.dart';
 import 'package:appflowy_editor/src/history/undo_manager.dart';
@@ -118,7 +117,7 @@ class EditorState {
   EditorState.empty() : this(document: Document.blank());
 
   EditorState.blank({bool withInitialText = true})
-    : this(document: Document.blank(withInitialText: withInitialText));
+      : this(document: Document.blank(withInitialText: withInitialText));
 
   final Document document;
 
@@ -142,6 +141,16 @@ class EditorState {
 
   /// The edge offset of the auto scroll.
   double autoScrollEdgeOffset = appFlowyEditorAutoScrollEdgeOffset;
+
+  /// Auto scroll config used on desktop and web.
+  AutoScrollConfig desktopOrWebAutoScrollConfig = AutoScrollConfig.desktopOrWeb;
+
+  /// Auto scroll config used on mobile.
+  AutoScrollConfig mobileAutoScrollConfig = AutoScrollConfig.mobile;
+
+  AutoScrollConfig get autoScrollConfig => PlatformExtension.isDesktopOrWeb
+      ? desktopOrWebAutoScrollConfig
+      : mobileAutoScrollConfig;
 
   /// The style of the editor.
   late EditorStyle editorStyle;
@@ -208,6 +217,7 @@ class EditorState {
   /// store the auto scroller instance in here temporarily.
   AutoScroller? autoScroller;
   ScrollableState? scrollableState;
+  AutoScrollConfig? _lastAutoScrollConfig;
 
   /// Configures log output parameters,
   /// such as log level and log output callbacks,
@@ -321,8 +331,8 @@ class EditorState {
   }
 
   RenderBox? get renderBox {
-    final renderObject = service.scrollServiceKey.currentContext
-        ?.findRenderObject();
+    final renderObject =
+        service.scrollServiceKey.currentContext?.findRenderObject();
     if (renderObject != null && renderObject is RenderBox) {
       return renderObject;
     }
@@ -542,9 +552,8 @@ class EditorState {
             node.copyWith(
               attributes: {
                 ...node.attributes,
-                blockComponentDelta: delta
-                    .slice(0, selection.endIndex)
-                    .toJson(),
+                blockComponentDelta:
+                    delta.slice(0, selection.endIndex).toJson(),
               },
             ),
           );
@@ -620,23 +629,25 @@ class EditorState {
   }
 
   void updateAutoScroller(ScrollableState scrollableState) {
-    if (this.scrollableState != scrollableState) {
+    final config = autoScrollConfig;
+    if (this.scrollableState != scrollableState ||
+        _lastAutoScrollConfig != config) {
       autoScroller?.stopAutoScroll();
-      final tuning = AppFlowyAutoScrollTuning.current();
       final bool isDesktopOrWeb = PlatformExtension.isDesktopOrWeb;
       late AutoScroller scroller;
       scroller = AutoScroller(
         scrollableState,
-        velocityScalar: tuning.velocityScalar,
-        minimumAutoScrollDelta: tuning.minimumAutoScrollDelta,
-        maxAutoScrollDelta: tuning.maximumAutoScrollDelta,
-        animationDuration: tuning.animationDuration,
+        velocityScalar: config.velocityScalar,
+        minimumAutoScrollDelta: config.minimumAutoScrollDelta,
+        maxAutoScrollDelta: config.maximumAutoScrollDelta,
+        overDragMax: config.overDragMax,
+        scrollDeltaSmoothingFactor: config.scrollDeltaSmoothingFactor,
+        animationDuration: config.animationDuration,
         onScrollViewScrolled: () {
           _notifyScrollViewScrolledListeners();
           if (!isDesktopOrWeb) {
             final dynamic dragMode = selectionExtraInfo?[_selectionDragModeKey];
-            final bool isDraggingSelection =
-                dragMode != null &&
+            final bool isDraggingSelection = dragMode != null &&
                 dragMode.toString() != 'MobileSelectionDragMode.none';
             if (!isDraggingSelection) {
               return;
@@ -651,6 +662,7 @@ class EditorState {
       );
       autoScroller = scroller;
       this.scrollableState = scrollableState;
+      _lastAutoScrollConfig = config;
     }
   }
 

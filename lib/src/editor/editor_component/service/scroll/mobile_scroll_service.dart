@@ -1,4 +1,5 @@
 import 'package:appflowy_editor/appflowy_editor.dart';
+import 'package:appflowy_editor/src/editor/editor_component/service/scroll/auto_scroller.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -17,8 +18,9 @@ class MobileScrollService extends StatefulWidget {
 class _MobileScrollServiceState extends State<MobileScrollService>
     implements AppFlowyScrollService {
   late final editorState = context.read<EditorState>();
-  late final autoScroller = editorState.autoScroller;
   late final editorScrollController = context.read<EditorScrollController>();
+
+  AutoScroller? get autoScroller => editorState.autoScroller;
 
   @override
   double get dy => context.read<EditorScrollController>().offsetNotifier.value;

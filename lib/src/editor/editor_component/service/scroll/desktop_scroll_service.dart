@@ -1,8 +1,7 @@
 import 'package:appflowy_editor/appflowy_editor.dart';
+import 'package:appflowy_editor/src/editor/editor_component/service/scroll/auto_scroller.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
-const Duration _kDesktopAutoScrollTickDuration = Duration(milliseconds: 80);
 
 class DesktopScrollService extends StatefulWidget {
   const DesktopScrollService({
@@ -19,8 +18,9 @@ class DesktopScrollService extends StatefulWidget {
 class _DesktopScrollServiceState extends State<DesktopScrollService>
     implements AppFlowyScrollService {
   late final editorState = context.read<EditorState>();
-  late final autoScroller = editorState.autoScroller;
   late final editorScrollController = context.read<EditorScrollController>();
+
+  AutoScroller? get autoScroller => editorState.autoScroller;
 
   @override
   double get dy => context.read<EditorScrollController>().offsetNotifier.value;
@@ -109,11 +109,12 @@ class _DesktopScrollServiceState extends State<DesktopScrollService>
       return;
     }
 
+    final fallbackDuration = editorState.autoScrollConfig.animationDuration;
     autoScroller?.startAutoScroll(
       offset,
       edgeOffset: edgeOffset,
       direction: direction,
-      duration: duration ?? _kDesktopAutoScrollTickDuration,
+      duration: duration ?? fallbackDuration,
     );
   }
 

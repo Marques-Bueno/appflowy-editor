@@ -1,8 +1,8 @@
 name: "appflowy_editor"
 
-version: 6.1.0
+version: 6.2.0+marquesbueno.1
 
-homepage: "https://github.com/AppFlowy-IO/appflowy-editor"
+homepage: "https://github.com/Marques-Bueno/appflowy-editor"
 
 environment:
   sdk: ">=3.6.0 <4.0.0"

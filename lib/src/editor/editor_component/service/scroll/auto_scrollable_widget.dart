@@ -1,3 +1,4 @@
+import 'package:appflowy_editor/src/editor/editor_component/service/scroll/auto_scroll_tuning.dart';
 import 'package:appflowy_editor/src/editor/editor_component/service/scroll/auto_scroller.dart';
 import 'package:appflowy_editor/src/editor_state.dart';
 import 'package:appflowy_editor/src/editor/util/platform_extension.dart';
@@ -16,10 +17,8 @@ class AutoScrollableWidget extends StatefulWidget {
 
   final bool shrinkWrap;
   final ScrollController scrollController;
-  final Widget Function(
-    BuildContext context,
-    AutoScroller autoScroller,
-  ) builder;
+  final Widget Function(BuildContext context, AutoScroller autoScroller)
+  builder;
 
   @override
   State<AutoScrollableWidget> createState() => _AutoScrollableWidgetState();
@@ -48,19 +47,19 @@ class _AutoScrollableWidgetState extends State<AutoScrollableWidget> {
     if (widget.shrinkWrap) {
       return widget.builder(context, _autoScroller);
     } else {
-      return Builder(
-        builder: builder,
-      );
+      return Builder(builder: builder);
     }
   }
 
   void _initAutoScroller() {
     final bool isDesktopOrWeb = PlatformExtension.isDesktopOrWeb;
+    final tuning = AppFlowyAutoScrollTuning.current();
     _autoScroller = AutoScroller(
       _scrollableState,
-      velocityScalar: isDesktopOrWeb ? 0.125 : 0.02,
-      minimumAutoScrollDelta: isDesktopOrWeb ? 0.07 : 0.004,
-      maxAutoScrollDelta: isDesktopOrWeb ? 2.75 : 0.053,
+      velocityScalar: tuning.velocityScalar,
+      minimumAutoScrollDelta: tuning.minimumAutoScrollDelta,
+      maxAutoScrollDelta: tuning.maximumAutoScrollDelta,
+      animationDuration: tuning.animationDuration,
       onScrollViewScrolled: () {
         if (!isDesktopOrWeb) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -68,7 +67,8 @@ class _AutoScrollableWidgetState extends State<AutoScrollableWidget> {
               final editorState = context.read<EditorState?>();
               final dynamic dragMode =
                   editorState?.selectionExtraInfo?[_selectionDragModeKey];
-              final bool isDraggingSelection = dragMode != null &&
+              final bool isDraggingSelection =
+                  dragMode != null &&
                   dragMode.toString() != 'MobileSelectionDragMode.none';
               if (!isDraggingSelection) {
                 return;

@@ -1,4 +1,5 @@
 import 'package:appflowy_editor/appflowy_editor.dart';
+import 'package:appflowy_editor/src/editor/editor_component/service/scroll/auto_scroll_tuning.dart';
 import 'package:appflowy_editor/src/editor/editor_component/service/selection/mobile_selection_service.dart';
 import 'package:appflowy_editor/src/editor/editor_component/service/selection/shared.dart';
 import 'package:appflowy_editor/src/service/selection/selection_gesture.dart';
@@ -170,8 +171,9 @@ class _DesktopSelectionServiceWidgetState
       ..clear();
 
     if (_keyboardInterceptor != null) {
-      editorState.service.keyboardService
-          ?.unregisterInterceptor(_keyboardInterceptor!);
+      editorState.service.keyboardService?.unregisterInterceptor(
+        _keyboardInterceptor!,
+      );
       _keyboardInterceptor = null;
     }
 
@@ -239,10 +241,7 @@ class _DesktopSelectionServiceWidgetState
   }
 
   @override
-  void onPanEnd(
-    DragEndDetails details,
-    MobileSelectionDragMode mode,
-  ) {
+  void onPanEnd(DragEndDetails details, MobileSelectionDragMode mode) {
     throw UnimplementedError();
   }
 
@@ -365,9 +364,7 @@ class _DesktopSelectionServiceWidgetState
 
     editorState.updateSelectionWithReason(
       newSelection,
-      extraInfo: {
-        selectionExtraInfoDisableToolbar: true,
-      },
+      extraInfo: {selectionExtraInfoDisableToolbar: true},
     );
 
     _showContextMenu(details);
@@ -387,9 +384,9 @@ class _DesktopSelectionServiceWidgetState
     _panStartOffset = details.globalPosition;
     _panStartScrollDy = editorState.service.scrollService?.dy;
 
-    _panStartPosition = getNodeInOffset(_panStartOffset!)
-        ?.selectable
-        ?.getPositionInOffset(_panStartOffset!);
+    _panStartPosition = getNodeInOffset(
+      _panStartOffset!,
+    )?.selectable?.getPositionInOffset(_panStartOffset!);
     if (_panStartPosition == null) {
       _resetPanState();
 
@@ -418,16 +415,18 @@ class _DesktopSelectionServiceWidgetState
     _lastPanOffset = details.globalPosition;
     _updateSelectionDuringDrag(_lastPanOffset!);
 
+    final tuning = AppFlowyAutoScrollTuning.current();
     editorState.service.scrollService?.startAutoScroll(
       _lastPanOffset!,
-      edgeOffset: 200,
-      duration: const Duration(milliseconds: 2),
+      edgeOffset: tuning.selectionDragEdgeOffset,
+      duration: tuning.animationDuration,
     );
   }
 
   void _onPanEnd(DragEndDetails details) {
-    final canPanEnd = _interceptors
-        .every((interceptor) => interceptor.canPanEnd?.call(details) ?? true);
+    final canPanEnd = _interceptors.every(
+      (interceptor) => interceptor.canPanEnd?.call(details) ?? true,
+    );
 
     if (!canPanEnd) {
       return;
@@ -447,10 +446,7 @@ class _DesktopSelectionServiceWidgetState
     final double? currentDy = editorState.service.scrollService?.dy;
     final Offset panStartOffset = currentDy == null || _panStartScrollDy == null
         ? _panStartOffset!
-        : _panStartOffset!.translate(
-            0,
-            _panStartScrollDy! - currentDy,
-          );
+        : _panStartOffset!.translate(0, _panStartScrollDy! - currentDy);
 
     final selectable = getNodeInOffset(panEndOffset)?.selectable;
     if (selectable == null) {
@@ -459,12 +455,7 @@ class _DesktopSelectionServiceWidgetState
 
     final Selection selection = Selection(
       start: _panStartPosition!,
-      end: selectable
-          .getSelectionInRange(
-            panStartOffset,
-            panEndOffset,
-          )
-          .end,
+      end: selectable.getSelectionInRange(panStartOffset, panEndOffset).end,
     );
 
     if (selection != currentSelection.value) {
@@ -519,9 +510,7 @@ class _DesktopSelectionServiceWidgetState
     final mask = OverlayEntry(
       builder: (_) => Listener(
         onPointerDown: (_) => _clearContextMenu(),
-        child: Container(
-          color: Colors.transparent,
-        ),
+        child: Container(color: Colors.transparent),
       ),
     );
     _contextMenuAreas.add(mask);
@@ -545,8 +534,9 @@ class _DesktopSelectionServiceWidgetState
     Overlay.of(context, rootOverlay: true).insert(contextMenu);
 
     _keyboardInterceptor = _ContextMenuKeyboardInterceptor();
-    editorState.service.keyboardService
-        ?.registerInterceptor(_keyboardInterceptor!);
+    editorState.service.keyboardService?.registerInterceptor(
+      _keyboardInterceptor!,
+    );
 
     editorState.service.keyboardService?.disableShortcuts();
     editorState.service.keyboardService?.disable();
@@ -608,10 +598,7 @@ class _DesktopSelectionServiceWidgetState
         if (builder != null && node != null) {
           return builder(
             context,
-            DragAreaBuilderData(
-              targetNode: node,
-              dragOffset: offset,
-            ),
+            DragAreaBuilderData(targetNode: node, dragOffset: offset),
           );
         }
 
@@ -639,8 +626,9 @@ class _DesktopSelectionServiceWidgetState
             margin: widget.dropTargetStyle.margin,
             constraints: widget.dropTargetStyle.constraints,
             decoration: BoxDecoration(
-              borderRadius:
-                  BorderRadius.circular(widget.dropTargetStyle.borderRadius),
+              borderRadius: BorderRadius.circular(
+                widget.dropTargetStyle.borderRadius,
+              ),
               color: widget.dropTargetStyle.color,
             ),
           ),
@@ -686,10 +674,7 @@ class _DesktopSelectionServiceWidgetState
 
     final dropPath = isCloserToStart ? node.path : node.path.next;
 
-    return DropTargetRenderData(
-      dropPath: dropPath,
-      cursorNode: node,
-    );
+    return DropTargetRenderData(dropPath: dropPath, cursorNode: node);
   }
 }
 

@@ -129,7 +129,7 @@ extension EditorCopyPaste on EditorState {
 
     // delete the selection first.
     if (!selection.isCollapsed) {
-      deleteSelection(selection);
+      await deleteSelection(selection);
     }
 
     // fetch selection again.selection = editorState.selection;

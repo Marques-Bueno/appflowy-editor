@@ -8,22 +8,22 @@ final standardContextMenuItems = [
     // cut
     ContextMenuItem(
       getName: () => AppFlowyEditorL10n.current.cut,
-      onPressed: (editorState) {
+      onPressed: (editorState) async {
         handleCut(editorState);
       },
     ),
     // copy
     ContextMenuItem(
       getName: () => AppFlowyEditorL10n.current.copy,
-      onPressed: (editorState) {
+      onPressed: (editorState) async {
         handleCopy(editorState);
       },
     ),
     // Paste
     ContextMenuItem(
       getName: () => AppFlowyEditorL10n.current.paste,
-      onPressed: (editorState) {
-        handlePaste(editorState);
+      onPressed: (editorState) async {
+        await handlePaste(editorState);
       },
     ),
   ],

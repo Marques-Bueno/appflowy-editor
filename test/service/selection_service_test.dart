@@ -425,6 +425,73 @@ void main() async {
       await editor.dispose();
     });
 
+    testWidgets(
+      'Test context menu paste maintains internal selection service state',
+      (tester) async {
+        const text = 'Welcome to Appflowy';
+        final editor = tester.editor..addParagraph(initialText: text);
+        await editor.startTesting();
+
+        // Select some text
+        await editor.updateSelection(
+          Selection.single(path: [0], startOffset: 0, endOffset: 7),
+        );
+
+        // Right-click to show context menu
+        final position = tester.getCenter(find.text(text, findRichText: true));
+        await tester.tapAt(
+          position,
+          buttons: kSecondaryButton,
+        );
+        await tester.pump();
+
+        // Verify context menu is shown
+        expect(find.byType(ContextMenu), findsOneWidget);
+
+        // Get the internal selection service state before paste
+        final internalSelectionBefore =
+            editor.editorState.service.selectionService.currentSelection.value;
+        expect(internalSelectionBefore, isNotNull);
+
+        // Mock clipboard data
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(SystemChannels.platform, (message) async {
+          switch (message.method) {
+            case 'Clipboard.getData':
+              return {
+                'text': 'Hello',
+              };
+            case 'Clipboard.setData':
+              return null;
+          }
+          return null;
+        });
+
+        // Tap paste button
+        final pasteButton = find.text('Paste');
+        expect(pasteButton, findsOneWidget);
+        await tester.tap(pasteButton);
+        await tester.pumpAndSettle(const Duration(milliseconds: 500));
+
+        // Verify context menu is closed
+        expect(find.byType(ContextMenu), findsNothing);
+
+        // Verify the internal selection service state is synchronized
+        final internalSelectionAfter =
+            editor.editorState.service.selectionService.currentSelection.value;
+        expect(internalSelectionAfter, isNotNull);
+        expect(internalSelectionAfter, equals(editor.selection));
+
+        // Restore mock
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(SystemChannels.platform, (message) async {
+          return null;
+        });
+
+        await editor.dispose();
+      },
+    );
+
     testWidgets('Block selection and then single tap', (tester) async {
       const text = 'Welcome to Appflowy 😁';
       final editor = tester.editor..addParagraph(initialText: text);

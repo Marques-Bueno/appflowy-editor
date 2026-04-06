@@ -54,6 +54,50 @@ void main() async {
     testWidgets('update selection and execute cut command', (tester) async {
       await _testCutHandle(tester, Document.fromJson(cutData));
     });
+
+    testWidgets('Test CRLF normalization in paste', (tester) async {
+      const text = 'Test text';
+      final editor = tester.editor..addParagraph(initialText: text);
+      await editor.startTesting();
+
+      // Select some text
+      await editor.updateSelection(
+        Selection.single(path: [0], startOffset: 0, endOffset: 4),
+      );
+
+      // Mock clipboard data with Windows line endings (CRLF)
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (message) async {
+        switch (message.method) {
+          case 'Clipboard.getData':
+            return {
+              'text': 'Line1\r\nLine2\r\nLine3',
+            };
+          case 'Clipboard.setData':
+            return null;
+        }
+        return null;
+      });
+
+      await handlePastePlainText(
+        editor.editorState,
+        'Line1\r\nLine2\r\nLine3',
+      );
+
+      final document = editor.editorState.document;
+      expect(document.root.children.length, 3);
+      expect(document.nodeAtPath([0])!.delta!.toPlainText(), 'Line1');
+      expect(document.nodeAtPath([1])!.delta!.toPlainText(), 'Line2');
+      expect(document.nodeAtPath([2])!.delta!.toPlainText(), 'Line3 text');
+
+      // Restore mock
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(SystemChannels.platform, (message) async {
+        return null;
+      });
+
+      await editor.dispose();
+    });
   });
 }
 
@@ -118,7 +162,7 @@ Future<void> _testSameNodeCopyPaste(
       end: Position(path: [0], offset: 4),
     ),
   );
-  pasteHTML(editor.editorState, documentToHTML(document));
+  await pasteHTML(editor.editorState, documentToHTML(document));
   expect(
     editor.editorState.document.toJson(),
     sameNodeParagraph,

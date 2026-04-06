@@ -181,14 +181,10 @@ class _DesktopSelectionServiceWidgetState
 
     final selection = editorState.selectionNotifier.value;
     if (selection != null) {
-      editorState.updateSelectionWithReason(
-        null,
-        reason: SelectionUpdateReason.uiEvent,
-      );
-      editorState.updateSelectionWithReason(
-        selection,
-        reason: SelectionUpdateReason.uiEvent,
-      );
+      // Re-emit the current selection without clearing it first.
+      // Toggling through null resets the overlay state used by the custom
+      // context menu and can leave selection state desynchronized after paste.
+      updateSelection(selection);
     }
   }
 
@@ -485,6 +481,13 @@ class _DesktopSelectionServiceWidgetState
     final selection = editorState.selectionNotifier.value;
     if (selection == null) {
       clearSelection();
+      return;
+    }
+
+    // Keep the service cache aligned with selections that originate outside
+    // pointer gestures, such as test helpers, commands, and paste handlers.
+    if (currentSelection.value != selection) {
+      currentSelection.value = selection;
     }
   }
 

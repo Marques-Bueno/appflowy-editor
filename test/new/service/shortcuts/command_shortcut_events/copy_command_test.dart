@@ -55,7 +55,7 @@ Future<void> _testHandleCopy(
     isControlPressed: Platform.isWindows || Platform.isLinux,
     isMetaPressed: Platform.isMacOS,
   );
-  deleteSelectedContent(editor.editorState);
+  await deleteSelectedContent(editor.editorState);
   expect(editor.document.root.children.length, 1);
   expect(editor.document.root.children.first.delta!.isEmpty, true);
   await editor.pressKey(

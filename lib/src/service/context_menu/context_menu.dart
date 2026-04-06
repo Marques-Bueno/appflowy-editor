@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:appflowy_editor/src/editor_state.dart';
 import 'package:flutter/material.dart';
 
@@ -16,7 +18,7 @@ class ContextMenuItem {
   }) : _getName = getName;
 
   final String Function() _getName;
-  final void Function(EditorState editorState) onPressed;
+  final FutureOr<void> Function(EditorState editorState) onPressed;
   final bool Function(EditorState editorState)? isApplicable;
 
   String get name => _getName();
@@ -58,9 +60,17 @@ class ContextMenu extends StatelessWidget {
                   customBorder: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  onTap: () {
-                    items[i][j].onPressed(editorState);
-                    onPressed();
+                  onTap: () async {
+                    // Keep the menu open until async actions such as paste
+                    // finish, otherwise the overlay can close while the
+                    // clipboard pipeline is still mutating selection state.
+                    try {
+                      await Future.sync(
+                        () => items[i][j].onPressed(editorState),
+                      );
+                    } finally {
+                      onPressed();
+                    }
                   },
                   onHover: (value) => setState(() {}),
                   child: Padding(

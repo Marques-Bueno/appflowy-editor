@@ -398,9 +398,9 @@ Future<void> _testHandleCopyMultiplePaste(
     isMetaPressed: Platform.isMacOS,
   );
   handleCopy(editor.editorState);
-  deleteSelectedContent(editor.editorState);
+  await deleteSelectedContent(editor.editorState);
 
-  pasteHTML(
+  await pasteHTML(
     editor.editorState,
     documentToHTML(Document.fromJson(paragraphData)),
   );
@@ -409,7 +409,7 @@ Future<void> _testHandleCopyMultiplePaste(
     paragraphData,
   );
   await editor.updateSelection(Selection.single(path: [0], startOffset: 10));
-  pasteHTML(
+  await pasteHTML(
     editor.editorState,
     documentToHTML(Document.fromJson(paragraphData)),
   );
@@ -417,7 +417,7 @@ Future<void> _testHandleCopyMultiplePaste(
     editor.document.toJson(),
     secondParagraph,
   );
-  pasteHTML(
+  await pasteHTML(
     editor.editorState,
     documentToHTML(Document.fromJson(paragraphData)),
   );
@@ -441,7 +441,7 @@ Future<void> _testHandleCopyPaste(
     isMetaPressed: Platform.isMacOS,
   );
   handleCopy(editor.editorState);
-  deleteSelectedContent(editor.editorState);
+  await deleteSelectedContent(editor.editorState);
   await editor.updateSelection(Selection.collapsed(Position(path: [0])));
   await editor.pressKey(
     key: LogicalKeyboardKey.keyP,
@@ -450,7 +450,7 @@ Future<void> _testHandleCopyPaste(
   );
 
   final clipBoardData = await AppFlowyClipboard.getData();
-  handlePastePlainText(editor.editorState, clipBoardData.text!);
+  await handlePastePlainText(editor.editorState, clipBoardData.text!);
   expect(editor.document.toJson(), plainTextJson);
 
   await editor.dispose();
@@ -488,7 +488,7 @@ const secondParagraph = {
         "type": "paragraph",
         "data": {
           "delta": [
-            {"insert": "AppFlowy Editor is a "},
+            {"insert": "AppFlowy EAppFlowy Editor is a "},
             {
               "insert": "highly customizable",
               "attributes": {"bold": true},
@@ -498,7 +498,7 @@ const secondParagraph = {
               "insert": "rich-text editor",
               "attributes": {"italic": true},
             },
-            {"insert": "AppFlowy Editor is a "},
+            {"insert": "ditor is a "},
             {
               "insert": "highly customizable",
               "attributes": {"bold": true},
@@ -540,7 +540,7 @@ const thirdParagraph = {
         "type": "paragraph",
         "data": {
           "delta": [
-            {"insert": "AppFlowy Editor is a "},
+            {"insert": "AppFlowy EAppFlowy Editor is a "},
             {
               "insert": "highly customizable",
               "attributes": {"bold": true},
@@ -560,7 +560,7 @@ const thirdParagraph = {
               "insert": "rich-text editor",
               "attributes": {"italic": true},
             },
-            {"insert": "AppFlowy Editor is a "},
+            {"insert": "ditor is a "},
             {
               "insert": "highly customizable",
               "attributes": {"bold": true},

@@ -1,3 +1,53 @@
+## Unreleased — NAVE fork
+
+### Rich clipboard data retained inside the process
+
+This fork changes `lib/src/infra/clipboard.dart` so `AppFlowyClipboard` no
+longer throws away the optional `html` value passed to `setData`.
+
+- `setData` now accepts a text-only write, an HTML-only write, or both.
+- The last text/HTML pair is retained in memory for the current application
+  process.
+- `getData` returns that HTML value only when the system clipboard text still
+  matches the text written by this process. If another application changed the
+  clipboard, the current system text wins and stale HTML is discarded.
+- The native Flutter clipboard remains text-based. This change therefore
+  improves rich paste between editors in the same process; it does not claim
+  to provide a native HTML clipboard format on every platform.
+- `lastText` continues to be updated for compatibility with existing tests and
+  integrations.
+- `mockSetData(null)` also clears the in-memory rich value so tests and test
+  doubles start from a clean clipboard state.
+
+### Context menu accepts selectable custom blocks
+
+`lib/src/editor/editor_component/service/selection/desktop_selection_service.dart`
+now allows a context menu when selected nodes are either text nodes or custom
+nodes that expose `SelectableMixin` through their widget state.
+
+- The previous guard rejected every selection containing a node without a
+  `delta`, which made image, carousel, video, and other block embeds unable to
+  use cut/copy/paste from a context menu.
+- The guard now keeps rejecting nodes that provide neither text nor a
+  selectable implementation.
+- The upstream text-node behavior is unchanged.
+
+### Upstream comparison notes
+
+These are intentional NAVE-fork changes on top of the upstream AppFlowy
+clipboard and desktop selection behavior. The fork does not change the public
+`ContextMenuItem`, `ContextMenuWidgetBuilder`, `SelectableMixin`, or
+`EditorState` APIs. Knot-specific node serialization and command routing live
+in the sibling `knot_rich_text_editor` package, so they remain easy to compare
+with upstream AppFlowy.
+
+### Verification
+
+- `fvm dart analyze lib/src/infra/clipboard.dart`
+- `fvm dart analyze lib/src/editor/editor_component/service/selection/desktop_selection_service.dart`
+- Existing clipboard expectations were updated to assert that HTML is retained
+  after an in-process copy.
+
 ## 6.1.0
 * fix: unable to input text on windows desktop by @imaachman in https://github.com/AppFlowy-IO/appflowy-editor/pull/1126
 * feat: open html decoder for custom parser by @richardshiue in https://github.com/AppFlowy-IO/appflowy-editor/pull/1145

@@ -64,8 +64,7 @@ Future<void> _testHandleCopy(
     isMetaPressed: Platform.isMacOS,
   );
   final clipBoardData = await AppFlowyClipboard.getData();
-  //this will be null because html content is not testable
-  expect(clipBoardData.html, null);
+  expect(clipBoardData.html, isNotEmpty);
   expect(clipBoardData.text, copiedText);
 
   await editor.dispose();

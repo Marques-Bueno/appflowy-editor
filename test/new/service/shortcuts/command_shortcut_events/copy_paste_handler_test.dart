@@ -135,8 +135,7 @@ Future<void> _testHandleCopy(WidgetTester tester, Document document) async {
       editor.editorState.getTextInSelection(editor.selection).join('\n');
   handleCopy(editor.editorState);
   final clipBoardData = await AppFlowyClipboard.getData();
-  //this will be null because html content is not testable
-  expect(clipBoardData.html, null);
+  expect(clipBoardData.html, isNotEmpty);
   expect(clipBoardData.text, text);
 
   await editor.dispose();

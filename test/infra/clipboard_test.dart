@@ -86,5 +86,18 @@ void main() {
 
       expect(clipboardData?.text, rawText);
     });
+
+    testWidgets('AppFlowyClipboard keeps HTML while text is unchanged', (
+      tester,
+    ) async {
+      const rawText = 'Hello World';
+      const rawHtml = '<p>Hello <strong>World</strong></p>';
+
+      await AppFlowyClipboard.setData(text: rawText, html: rawHtml);
+      final clipboardData = await AppFlowyClipboard.getData();
+
+      expect(clipboardData.text, rawText);
+      expect(clipboardData.html, rawHtml);
+    });
   });
 }

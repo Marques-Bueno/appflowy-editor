@@ -504,8 +504,11 @@ class _DesktopSelectionServiceWidgetState
       return;
     }
 
-    // For now, only support the text node.
-    if (!currentSelectedNodes.every((element) => element.delta != null)) {
+    // Text nodes and custom blocks that implement SelectableMixin can both
+    // provide a meaningful copy/cut/paste context menu.
+    if (!currentSelectedNodes.every(
+      (element) => element.delta != null || element.selectable != null,
+    )) {
       return;
     }
 

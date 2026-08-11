@@ -112,7 +112,7 @@ void main() async {
     );
 
     testWidgets(
-      'Test secondary tap - collapsed selection remains unchanged',
+      'Test secondary tap - collapsed text selection moves to tap point',
       (tester) async {
         const text = 'Welcome to Appflowy 😁';
         final editor = tester.editor..addParagraphs(3, initialText: text);
@@ -136,7 +136,9 @@ void main() async {
         );
         await tester.pump();
 
-        expect(editor.selection, equals(originalSelection));
+        expect(editor.selection, isNot(equals(originalSelection)));
+        expect(editor.selection!.isCollapsed, isTrue);
+        expect(editor.selection!.start.path, [1]);
 
         final contextMenu = find.byType(ContextMenu);
         expect(contextMenu, findsOneWidget);
@@ -146,7 +148,7 @@ void main() async {
     );
 
     testWidgets(
-      'Test secondary tap - non-collapsed selection remains when tapping within selected node',
+      'Test secondary tap - expanded text selection collapses at tap point',
       (tester) async {
         const text = 'Welcome to Appflowy 😁';
         final editor = tester.editor..addParagraphs(3, initialText: text);
@@ -173,7 +175,9 @@ void main() async {
         );
         await tester.pumpAndSettle();
 
-        expect(editor.selection, equals(originalSelection));
+        expect(editor.selection, isNot(equals(originalSelection)));
+        expect(editor.selection!.isCollapsed, isTrue);
+        expect(editor.selection!.start.path, [1]);
 
         final contextMenu = find.byType(ContextMenu);
         expect(contextMenu, findsOneWidget);
@@ -183,7 +187,7 @@ void main() async {
     );
 
     testWidgets(
-      'Test secondary tap - multi-node selection remains when tapping within selected nodes',
+      'Test secondary tap - multi-node text selection collapses at tap point',
       (tester) async {
         const text = 'Welcome to Appflowy 😁';
         final editor = tester.editor..addParagraphs(3, initialText: text);
@@ -214,7 +218,9 @@ void main() async {
         );
         await tester.pump();
 
-        expect(editor.selection, equals(originalSelection));
+        expect(editor.selection, isNot(equals(originalSelection)));
+        expect(editor.selection!.isCollapsed, isTrue);
+        expect(editor.selection!.start.path, [1]);
 
         final contextMenu = find.byType(ContextMenu);
         expect(contextMenu, findsOneWidget);
@@ -304,7 +310,9 @@ void main() async {
 
         expect(find.byType(ContextMenu), findsNothing);
 
-        expect(editor.selection, equals(originalSelection));
+        expect(editor.selection, isNot(equals(originalSelection)));
+        expect(editor.selection!.isCollapsed, isTrue);
+        expect(editor.selection!.start.path, [1]);
         expect(editor.selection, isNotNull);
 
         await editor.dispose();
@@ -382,7 +390,9 @@ void main() async {
         await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
         await tester.pumpAndSettle();
 
-        expect(editor.selection, equals(originalSelection));
+        expect(editor.selection, isNot(equals(originalSelection)));
+        expect(editor.selection!.isCollapsed, isTrue);
+        expect(editor.selection!.start.path, [1]);
 
         await tester.tapAt(const Offset(10.0, 10.0));
         await tester.pumpAndSettle();

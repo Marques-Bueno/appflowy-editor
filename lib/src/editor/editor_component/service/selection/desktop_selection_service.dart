@@ -322,7 +322,6 @@ class _DesktopSelectionServiceWidgetState
 
   void _onSecondaryTapDown(TapDownDetails details) {
     final offset = details.globalPosition;
-    final selection = editorState.selectionNotifier.value;
     final node = getNodeInOffset(offset);
     final selectable = node?.selectable;
 
@@ -335,26 +334,14 @@ class _DesktopSelectionServiceWidgetState
     final position = selectable.getPositionInOffset(offset);
     final Selection? newSelection;
 
-    // cases
-    // 1. if the selection is null, then select the current position as a collapsed selection
-    // 2. if the selection is collapsed, then keep it without changes
-    // 3. if the selection is not collapsed, then check if tap is within a selected node
-    // 4. if tap is within the selected nodes, then keep current selection
-    // 5. if tap is outside the selected nodes, then create a collapsed selection at tap point
-
-    if (selection == null) {
-      newSelection = Selection.collapsed(position);
-    } else if (selection.isCollapsed) {
-      newSelection = selection;
+    // A secondary click always selects the clicked custom block as a whole.
+    // Text nodes always receive a cursor at the clicked position, regardless
+    // of the previous selection state.
+    if (node?.delta == null) {
+      newSelection =
+          Selection(start: selectable.start(), end: selectable.end());
     } else {
-      final selectedNodes = editorState.getNodesInSelection(selection);
-      final isTapInSelectedNode = selectedNodes.any((n) => n == node);
-
-      if (isTapInSelectedNode) {
-        newSelection = selection;
-      } else {
-        newSelection = Selection.collapsed(position);
-      }
+      newSelection = Selection.collapsed(position);
     }
 
     editorState.updateSelectionWithReason(
@@ -504,9 +491,17 @@ class _DesktopSelectionServiceWidgetState
       return;
     }
 
+    // Use the nodes from the document instead of getSelectedNodes(), which
+    // returns copies with new GlobalKeys and therefore no SelectableMixin.
+    final selection = editorState.selection;
+    if (selection == null) {
+      return;
+    }
+
     // Text nodes and custom blocks that implement SelectableMixin can both
     // provide a meaningful copy/cut/paste context menu.
-    if (!currentSelectedNodes.every(
+    final selectedNodes = editorState.getNodesInSelection(selection);
+    if (!selectedNodes.every(
       (element) => element.delta != null || element.selectable != null,
     )) {
       return;
